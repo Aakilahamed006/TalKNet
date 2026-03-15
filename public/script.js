@@ -326,6 +326,7 @@ waitForIO(() => {
 function showSelfInMain() {
   mainVideo.srcObject = localStream;
   mainVideo.classList.remove('remote');
+  mainVideo.muted = true; // always mute self to prevent echo
   mainLabel.textContent = myName + ' (You)';
   mainSocketId = 'self';
   updateMainAvatarOverlay('self');
@@ -353,7 +354,7 @@ function buildTile(id, stream, label, isSelf) {
   const video = document.createElement('video');
   video.autoplay = true;
   video.playsInline = true;
-  video.muted = true;
+  video.muted = isSelf; // only mute own tile to prevent echo
   video.srcObject = stream;
 
   const lbl = document.createElement('div');
@@ -403,9 +404,11 @@ function focusTile(id, stream, label) {
   if (id === 'self') {
     mainVideo.srcObject = localStream;
     mainVideo.classList.remove('remote');
+    mainVideo.muted = true;  // mute self to prevent echo
   } else {
     mainVideo.srcObject = stream;
     mainVideo.classList.add('remote');
+    mainVideo.muted = false; // unmute remote user
   }
   mainLabel.textContent = label;
   updateMainAvatarOverlay(id);
