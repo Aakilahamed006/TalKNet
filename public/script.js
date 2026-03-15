@@ -53,12 +53,19 @@ const sendBtn          = document.getElementById('send-btn');
 const chatBadge        = document.getElementById('chat-badge');
 const timerEl          = document.getElementById('meeting-timer');
 
-const iceConfig = {
-  iceServers: [
-    { urls: 'stun:stun.l.google.com:19302' },
-    { urls: 'stun:stun1.l.google.com:19302' }
-  ]
-};
+// ICE servers are fetched from the server (includes TURN when configured)
+let iceConfig = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
+
+async function loadIceServers() {
+  try {
+    const res = await fetch('/ice-servers');
+    const servers = await res.json();
+    iceConfig = { iceServers: servers };
+    console.log('ICE servers loaded:', servers.length, 'servers');
+  } catch (e) {
+    console.warn('Could not load ICE servers, using STUN only:', e.message);
+  }
+}
 
 // ════════════════════════════════════════════════════════════
 //  BOOTSTRAP
@@ -146,6 +153,9 @@ waitForIO(() => {
     showSelfInMain();
     addSelfTile();
     startTimer();
+
+    // Fetch TURN credentials before signaling starts
+    await loadIceServers();
     socket.emit('join-room', { roomId, userName: myName });
   }
 
